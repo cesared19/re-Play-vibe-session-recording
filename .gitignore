@@ -1,0 +1,6 @@
+# Unity creates these if the package is opened as a project by mistake
+Library/
+Temp/
+Logs/
+UserSettings/
+.DS_Store

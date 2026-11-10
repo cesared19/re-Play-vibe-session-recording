@@ -1,0 +1,31 @@
+{
+  "name": "com.sparky.xr-session-capture",
+  "version": "0.1.0",
+  "displayName": "XR Session Capture",
+  "description": "Record XR sessions on the headset (head and controller poses, buttons, screenshots, performance metrics), replay them through virtual Input System devices in the Editor or on the headset, and compare screenshots and performance against the recording. Includes an in-headset metrics overlay. Built for the VIVE Focus 3 with the VIVE OpenXR plugin; works with any OpenXR headset that uses the Input System.",
+  "unity": "2021.3",
+  "keywords": [
+    "xr",
+    "openxr",
+    "vive",
+    "focus 3",
+    "testing",
+    "replay",
+    "performance"
+  ],
+  "dependencies": {
+    "com.unity.inputsystem": "1.7.0"
+  },
+  "samples": [
+    {
+      "displayName": "Replay regression tests",
+      "description": "PlayMode test that replays every capture in SessionCaptures/regression and fails if a screenshot differs.",
+      "path": "Samples~/ReplayTests"
+    }
+  ],
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cesared19/re-Play-vibe-session-recording.git"
+  }
+}
