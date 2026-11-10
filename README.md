@@ -4,6 +4,8 @@ Paquete de Unity para grabar sesiones en el **HTC VIVE Focus 3** y reproducirlas
 
 Incluye además un **overlay de métricas** dentro del visor (FPS, tiempos de CPU y GPU, frames perdidos, memoria, batería, temperatura y estado térmico).
 
+**¿Primera vez?** La [guía paso a paso](Documentation~/guia-paso-a-paso.md) explica todo el proceso, desde preparar el PC y el visor hasta grabar, bajar y reproducir una sesión.
+
 > **Estado:** versión 0.1.0. El código compila contra Unity 2021.3 e Input System 1.7 (runtime, Editor y la rama de Android), pero **todavía no se ha probado en Unity ni en un Focus 3**. Consulta [Primera prueba](#primera-prueba) más abajo.
 
 ## Qué se graba
