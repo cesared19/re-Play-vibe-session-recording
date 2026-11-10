@@ -11,3 +11,4 @@
 - In-headset metrics overlay with a frame-time graph, on the left wrist or following the head.
 - Window > XR Session Capture: browse captures, pull them from the headset with adb, replay in the Editor or on the headset, open reports.
 - Sample PlayMode regression test.
+- Step-by-step guide in Spanish (`Documentation~/guia-paso-a-paso.md`): PC and headset setup, installation, recording, pulling and replaying a session.
