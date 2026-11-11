@@ -1,0 +1,5 @@
+# Windows scripts are kept byte for byte: the .ps1 needs its UTF-8 BOM (Windows PowerShell 5.1) and CRLF
+*.ps1 -text
+*.cmd -text
+*.command text eol=lf
+*.png binary

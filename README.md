@@ -29,6 +29,23 @@ Cada sesión es una carpeta con:
 
 ## Instalación
 
+### Con el asistente (Windows y macOS)
+
+El asistente revisa lo que hace falta en el PC, agrega re-Play a tu proyecto de Unity y maneja el visor, sin usar la terminal. No instala nada por su cuenta y usa solo lo que trae el sistema.
+
+1. Descarga el repositorio: en GitHub, *Code → Download ZIP*, y descomprímelo.
+2. Abre la carpeta `Tools~/Setup`:
+   - **Windows:** doble clic en `re-Play Setup.cmd`. Si Windows muestra *"Windows protegió su PC"*, pulsa *Más información → Ejecutar de todas formas*.
+   - **macOS:** clic derecho en `re-Play Setup.command` → *Abrir* → *Abrir* (solo la primera vez, porque viene de internet).
+3. El asistente muestra:
+   - **Lo que hace falta:** Git, Unity, el módulo Android de Unity, adb y el visor conectado, cada uno como *Listo* o *Falta*, con cómo resolverlo.
+   - **Proyecto de Unity:** eliges la carpeta y la versión, y agrega re-Play a `Packages/manifest.json` (deja una copia en `manifest.json.bak`).
+   - **Visor:** instala el `.apk` que compiló Unity, abre la app y baja las sesiones grabadas a `SessionCaptures/` del proyecto.
+
+El asistente no compila la app ni configura OpenXR: eso se hace en Unity (pasos 5 a 7 y 11 de la guía).
+
+### A mano
+
 En *Window → Package Manager → + → Add package from git URL*:
 
 ```
@@ -146,6 +163,12 @@ SPARKYTC_URL=http://192.168.1.20:3000 SPARKYTC_TOKEN=stc_... SPARKYTC_BUILD=1.4.
 | `battery_pct` | `SystemInfo.batteryLevel` |
 | `battery_temp_c`, `thermal_status` | Android: temperatura de la batería y `PowerManager.getCurrentThermalStatus()` (cada 2 s) |
 | `left/right_controller_battery_pct` | `CommonUsages.batteryLevel`, si el runtime lo expone |
+
+| Grabando (muñeca izquierda) | Reproduciendo, con caídas de rendimiento |
+| --- | --- |
+| ![Overlay mientras se graba](Documentation~/images/overlay-recording.png) | ![Overlay durante una reproducción](Documentation~/images/overlay-replay.png) |
+
+*Ilustraciones generadas a partir del código del overlay (mismo texto, colores y gráfica); no son capturas tomadas en el visor.* La gráfica muestra el tiempo de cada frame: verde dentro del presupuesto, amarillo hasta 1.5 veces y rojo por encima; la línea es el presupuesto (11.1 ms a 90 Hz).
 
 Las celdas vacías (o "—" en el overlay) indican que el dato no está disponible en ese dispositivo o con esa configuración. El overlay se muestra en la muñeca izquierda (o frente a ti si el control no tiene seguimiento) y se oculta automáticamente al tomar capturas.
 

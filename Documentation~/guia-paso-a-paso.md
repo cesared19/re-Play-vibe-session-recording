@@ -42,6 +42,8 @@ Esta guía cubre todo el proceso: preparar el PC y el visor, instalar el paquete
 | Git | Instalado en el PC: el Package Manager de Unity lo usa para descargar paquetes desde GitHub. |
 | SparkyTC (opcional) | 2.5.0 o posterior, para publicar los resultados como test runs (paso 18). |
 
+> **Atajo: el asistente de instalación.** En la carpeta `Tools~/Setup` del repositorio hay un asistente con ventana para Windows (`re-Play Setup.cmd`) y macOS (`re-Play Setup.command`). Revisa los requisitos de los pasos 2 y 3, hace el paso 8 (agregar re-Play al proyecto), instala el `.apk` en el visor (paso 11, después de compilarlo en Unity) y baja las sesiones (paso 13). Cómo abrirlo está en el README. Los pasos de esta guía siguen sirviendo para hacerlo a mano y para todo lo que ocurre dentro de Unity.
+
 ## 2. Preparar el PC
 
 1. **Instala Git.** Descárgalo de <https://git-scm.com/downloads> y, en Windows, deja marcada la opción que lo agrega al `PATH`. Comprueba que funciona en una terminal:
@@ -212,6 +214,10 @@ Los controles usan el botón **Menú del control izquierdo** como modificador: m
 | Empezar o detener la grabación | **Menú + Y** |
 | Tomar una captura (punto de control) | **Menú + gatillo izquierdo** |
 
+![El overlay en la muñeca izquierda mientras se graba](images/overlay-recording.png)
+
+*Ilustración generada a partir del código del overlay; no es una captura tomada en el visor.* Así se ve el overlay mientras grabas: el estado (**● REC**, tiempo y frame), los FPS con el tiempo de frame, CPU y GPU, frames perdidos, memoria, batería con temperatura y los controles. Abajo, la gráfica del tiempo de cada frame: verde dentro del presupuesto, amarillo y rojo cuando se pasa.
+
 1. Abre la app en el visor. Si activaste *Record On Start*, ya está grabando: el overlay de la muñeca izquierda muestra **● REC**.
 2. Si no, pulsa **Menú + Y** para empezar.
 3. Haz la prueba que quieras repetir después (por ejemplo, abrir un menú, tomar un objeto o recorrer un nivel).
@@ -271,6 +277,10 @@ Sirve para medir el rendimiento en el hardware real con exactamente las mismas a
 
 1. Conecta el visor por USB.
 2. En *Window → XR Session Capture*, pulsa **Replay on headset** en la sesión. La ventana sube la sesión al visor y reinicia la app con ella.
+   ![El overlay durante una reproducción con caídas de rendimiento](images/overlay-replay.png)
+
+   *Ilustración generada a partir del código del overlay.* Durante la reproducción muestra **▶ REPLAY** con el porcentaje; aquí, además, tramos en amarillo y rojo donde los frames tardaron más que el presupuesto.
+
 3. Deja el visor quieto sobre la mesa mientras reproduce. Si lo llevas puesto, la imagen se mueve de forma extraña, porque el sistema sigue usando tu cabeza real.
 4. Cuando termine (el overlay vuelve a *Idle*), pulsa **Pull captures from headset**. El reporte queda en `replays/` y aparece en la ventana.
 

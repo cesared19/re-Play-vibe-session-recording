@@ -1,0 +1,73 @@
+<!doctype html><meta charset="utf-8">
+<style>
+  html,body{margin:0;background:#000}
+  /* a plain stand-in for the app's scene, so the panel has something behind it */
+  #scene{position:relative;width:960px;height:540px;overflow:hidden;font-family:Arial,"Liberation Sans",sans-serif;
+    background:linear-gradient(#27324a 0%,#3d4c6b 46%,#1d2230 46.2%,#2a3040 100%)}
+  #floor{position:absolute;left:-50%;right:-50%;top:46%;bottom:-40%;transform:perspective(420px) rotateX(62deg);transform-origin:50% 0;
+    background-image:linear-gradient(#ffffff14 1px,transparent 1px),linear-gradient(90deg,#ffffff14 1px,transparent 1px);background-size:48px 48px}
+  .cube{position:absolute;border-radius:3px}
+  /* 1 m = 1600 px: the panel is 0.26 m x 0.13 m */
+  #panel{position:absolute;width:416px;height:208px;background:rgba(13,13,18,.82)}
+  #text{font-family:inherit;position:absolute;left:9.6px;top:8px;margin:0;color:#fff;font-size:13.6px;line-height:16.16px;white-space:pre}
+  #graph{position:absolute;left:8px;width:400px;height:57.6px;bottom:6.4px;image-rendering:pixelated}
+  #note{position:absolute;right:8px;bottom:6px;font-size:10px;color:#ffffffb0}
+  #hand{position:absolute;width:150px;height:90px;border-radius:40px 50px 30px 30px;background:linear-gradient(#3b3f49,#22252c)}
+</style>
+<div id="scene"><div id="floor"></div>
+  <div class="cube" style="left:150px;top:205px;width:70px;height:70px;background:linear-gradient(135deg,#d9644a,#8f3a2a)"></div>
+  <div class="cube" style="left:660px;top:190px;width:90px;height:90px;background:linear-gradient(135deg,#4aa3d9,#2a5f8f)"></div>
+  <div class="cube" style="left:455px;top:232px;width:40px;height:40px;background:linear-gradient(135deg,#d9c24a,#8f7c2a)"></div>
+  <div id="hand"></div>
+  <div id="panel"><pre id="text"></pre><canvas id="graph" width="180" height="56"></canvas></div>
+  <div id="note">Ilustración generada a partir del código del overlay; no es una captura del visor</div>
+</div>
+<script>
+// Same rules as MetricsOverlay.BuildText and PushGraph.
+const N=(v,d)=>v.toFixed(d), Ms=v=>v==null?'—':N(v,1), Pct=v=>v==null?'—':N(v,0)+'%'
+const span=(c,t)=>`<span style="color:${c}">${t}</span>`
+const thermal=s=>[span('#4ade80','cool'),span('#a3e635','light'),span('#facc15','moderate'),span('#fb923c','severe')][s]??''
+function buildText(m,state){
+  const budget=1000/m.refresh
+  const fpsColor=m.frameMs<=budget*1.05?'#4ade80':m.frameMs<=budget*1.5?'#facc15':'#f87171'
+  let s=''
+  if(state.kind==='rec') s+=span('#f87171','● REC')+` ${state.clock}   frame ${state.frames}\n`
+  else if(state.kind==='replay') s+=span('#60a5fa','▶ REPLAY')+` ${state.percent}%\n`
+  else s+=span('#a1a1aa','Idle')+(state.last==null?'':'   last replay: '+(state.last?span('#4ade80','passed'):span('#f87171','failed')))+'\n'
+  s+=span(fpsColor,N(1000/m.frameMs,0)+' fps')+`  ${N(m.frameMs,1)} ms  (budget ${N(budget,1)})\n`
+  s+=`CPU ${Ms(m.cpu)}  GPU ${Ms(m.gpu)}  main ${Ms(m.main)}\n`
+  s+=`XR app GPU ${Ms(m.xrGpu)}  dropped ${m.dropped}\n`
+  s+=`Mem ${N(m.mem,0)} MB  GC ${N(m.gc,1)} KB/f\n`
+  s+=`Battery ${Pct(m.battery)}  ${N(m.temp,1)} °C  ${thermal(m.thermal)}\n`
+  s+=`Controllers L ${Pct(m.left)}  R ${Pct(m.right)}`
+  return s
+}
+function drawGraph(history,refresh){
+  const c=document.getElementById('graph'),g=c.getContext('2d'),W=180,H=56
+  const img=g.createImageData(W,H),budget=1000/refresh,maxMs=budget*2
+  const put=(x,y,r,gg,b,a)=>{const i=((H-1-y)*W+x)*4;img.data[i]=r;img.data[i+1]=gg;img.data[i+2]=b;img.data[i+3]=a}
+  const row=Math.min(H-1,Math.max(0,Math.round(budget/maxMs*(H-1))))
+  for(let x=0;x<W;x++)put(x,row,255,255,255,90)
+  for(let x=0;x<W;x++){const v=history[x];if(!(v>0))continue
+    const h=Math.min(H-1,Math.max(1,Math.round(v/maxMs*(H-1))))
+    const col=v<=budget*1.05?[74,222,128,230]:v<=budget*1.5?[250,204,21,230]:[248,113,113,240]
+    for(let y=0;y<=h;y++)put(x,y,...col)}
+  g.putImageData(img,0,0)
+}
+// deterministic frame times
+function history(seed,spikes){let s=seed;const r=()=>(s=(s*1664525+1013904223)%4294967296)/4294967296
+  const out=[];for(let x=0;x<180;x++){let v=10.2+r()*1.1;for(const [from,to,ms] of spikes)if(x>=from&&x<to)v=ms+r()*1.5;out.push(v)}return out}
+const cases={
+  recording:{anchor:'wrist',state:{kind:'rec',clock:'01:42',frames:9183},hist:history(7,[[120,123,13.5]]),
+    m:{refresh:90,frameMs:11.1,cpu:6.2,gpu:8.9,main:5.1,xrGpu:8.7,dropped:2,mem:1482,gc:0.4,battery:87,temp:34.5,thermal:0,left:80,right:75}},
+  replay:{anchor:'head',state:{kind:'replay',percent:63},hist:history(21,[[40,58,14.8],[96,104,19.5],[150,156,13.9]]),
+    m:{refresh:90,frameMs:14.6,cpu:7.9,gpu:13.2,main:6.4,xrGpu:12.8,dropped:37,mem:1516,gc:1.8,battery:74,temp:37.9,thermal:2,left:null,right:null}},
+  idle:{anchor:'head',state:{kind:'idle',last:true},hist:history(3,[]),
+    m:{refresh:90,frameMs:11.1,cpu:null,gpu:null,main:null,xrGpu:8.6,dropped:0,mem:1475,gc:0.0,battery:91,temp:33.2,thermal:0,left:80,right:75}},
+}
+function show(name){const c=cases[name]
+  document.getElementById('text').innerHTML=buildText(c.m,c.state);drawGraph(c.hist,c.m.refresh)
+  const p=document.getElementById('panel'),h=document.getElementById('hand')
+  if(c.anchor==='wrist'){p.style.left='230px';p.style.top='236px';p.style.transform='rotate(-5deg)';h.style.display='block';h.style.left='330px';h.style.top='452px';h.style.transform='rotate(-8deg)'}
+  else{p.style.left='272px';p.style.top='270px';p.style.transform='none';h.style.display='none'}}
+</script>
