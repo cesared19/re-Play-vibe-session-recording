@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+### Added
+
+- Setup assistant for Windows and macOS (`Tools~/Setup`): a window that checks what the PC needs (Git, Unity, Unity's Android module, adb, the headset), adds re-Play to a Unity project at a chosen version, installs an `.apk` on the headset, opens the app and pulls its captures. It uses only what the system ships with (Windows PowerShell; bash, perl and osascript on macOS).
+- Illustrations of the in-headset overlay while recording, replaying and idle, in the README and the guide. They are drawn from the overlay's own rules, not captured on a headset.
+
+### Changed
+
+- The install URLs use the repository's current name, `re-Vibe-session-recording`.
+
 ## [0.2.0] - 2026-11-11
 
 ### Added
