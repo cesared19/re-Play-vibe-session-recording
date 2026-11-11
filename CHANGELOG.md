@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- Link captures to SparkyTC test cases: in Window > XR Session Capture, set the SparkyTC URL and a project API token (kept in EditorPrefs on this PC, never in a build), then pick a test case for each capture. The link is saved as `sparkytc.json` in the capture's folder and travels with it. The window also lists captures in folders that group them, such as `SessionCaptures/regression`.
+
 ## [0.1.0] - 2026-11-10
 
 ### Added

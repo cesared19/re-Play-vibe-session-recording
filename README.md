@@ -94,6 +94,17 @@ Con *Timing* en **FrameLocked** (el valor por defecto), se reproduce un frame gr
 - Las cargas asíncronas, la red, los sistemas de partículas con semilla aleatoria y el audio pueden variar. Si una zona cambia sola, sube *Max Different Pixels Percent* o toma la captura en otro momento.
 - Las capturas del visor y las del Editor pueden diferir un poco por calidad, sombras o MSAA. Compara reproducciones hechas en el mismo dispositivo con el que se grabó, o ajusta *Pixel Threshold*.
 
+### Vincular sesiones con SparkyTC
+
+Cada sesión se puede vincular con el test case de [SparkyTC](https://github.com/cesared19/SparkyTC) que automatiza, para publicar después sus reproducciones como test runs automáticos. El visor nunca se conecta a SparkyTC: todo esto ocurre en el PC.
+
+1. En *Window → XR Session Capture*, abre la sección **SparkyTC**.
+2. Escribe la **SparkyTC URL** (la dirección donde abres SparkyTC) y pega un **token de API del proyecto**. Lo crea un admin en SparkyTC, en *Settings → API tokens* del proyecto: *Read* basta para vincular y *Read and write* hace falta para publicar. Se guardan en EditorPrefs de este PC, nunca en el proyecto ni en el build.
+3. Pulsa **Connect** para comprobarlo.
+4. En cada sesión, **Link…** abre un buscador de test cases (por número o título). El vínculo se guarda en `sparkytc.json`, junto a `session.xrsc`, y viaja con la carpeta (por ejemplo, al moverla a `regression/`). **Open** abre el test case en SparkyTC y **Unlink** quita el vínculo.
+
+> Si el backend de SparkyTC solo escucha en el servidor (`127.0.0.1:8080`), la API de integración no es accesible desde otro PC por el puerto de la app. Mientras SparkyTC no la publique, usa un túnel SSH (`ssh -L 8080:127.0.0.1:8080 usuario@servidor`) y pon `http://localhost:8080` en **API URL**.
+
 ## Métricas
 
 | Columna en `metrics.csv` | Origen |
