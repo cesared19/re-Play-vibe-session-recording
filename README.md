@@ -103,7 +103,36 @@ Cada sesión se puede vincular con el test case de [SparkyTC](https://github.com
 3. Pulsa **Connect** para comprobarlo.
 4. En cada sesión, **Link…** abre un buscador de test cases (por número o título). El vínculo se guarda en `sparkytc.json`, junto a `session.xrsc`, y viaja con la carpeta (por ejemplo, al moverla a `regression/`). **Open** abre el test case en SparkyTC y **Unlink** quita el vínculo.
 
-> Si el backend de SparkyTC solo escucha en el servidor (`127.0.0.1:8080`), la API de integración no es accesible desde otro PC por el puerto de la app. Mientras SparkyTC no la publique, usa un túnel SSH (`ssh -L 8080:127.0.0.1:8080 usuario@servidor`) y pon `http://localhost:8080` en **API URL**.
+> Desde SparkyTC 2.5.0 la API de integración responde en la misma dirección de la app (puerto 3000). Con versiones anteriores, usa un túnel SSH (`ssh -L 8080:127.0.0.1:8080 usuario@servidor`) y pon `http://localhost:8080` en **API URL**.
+
+### Publicar reproducciones en SparkyTC
+
+**Publish replays…** (en la sección SparkyTC) abre una ventana con las reproducciones: las hechas en el Editor, en el test runner o en el visor (después de bajarlas).
+
+1. Elige la **build** que probaste, de las registradas en SparkyTC. Si falta, un admin la agrega en la pestaña *Builds*; la API no crea builds.
+2. Marca las reproducciones. Por defecto se marca la más reciente de cada sesión vinculada; las de sesiones sin vincular aparecen, pero no se pueden publicar.
+3. Pulsa **Publish**. Se crea un **test run automático** con un resultado por test case vinculado:
+   - **Pass** si la reproducción coincidió con la grabación, **Fail** si no.
+   - Las notas llevan los hallazgos; el tiempo es la duración de la reproducción.
+   - El reporte se ve en SparkyTC como *Replay report*.
+   - Como evidencia se suben las capturas de la grabación, de la reproducción y la diferencia de cada punto de control, más la carpeta de la reproducción en `.zip`.
+
+Si dos reproducciones del lote son del mismo test case, se publica la más reciente. Publicar otra vez las mismas reproducciones no crea nada nuevo: devuelve el mismo run y, si una publicación anterior quedó a medias, completa lo que falte. El token tiene que ser *Read and write*.
+
+**Desde el test runner:** la prueba de ejemplo publica al terminar si estas variables de entorno están definidas antes de abrir Unity:
+
+| Variable | Valor |
+| --- | --- |
+| `SPARKYTC_URL` | Dirección de SparkyTC, p. ej. `http://192.168.1.20:3000` |
+| `SPARKYTC_TOKEN` | Token *Read and write* del proyecto |
+| `SPARKYTC_BUILD` | Build registrada en SparkyTC, p. ej. `1.4.2` |
+| `SPARKYTC_API_URL` | Opcional, si la API está en otra dirección |
+| `SPARKYTC_RUN_TITLE` | Opcional, título del run |
+
+```bash
+SPARKYTC_URL=http://192.168.1.20:3000 SPARKYTC_TOKEN=stc_... SPARKYTC_BUILD=1.4.2 \
+  Unity -batchmode -projectPath . -runTests -testPlatform PlayMode -testResults results.xml
+```
 
 ## Métricas
 

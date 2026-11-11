@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using XRSessionCapture.SparkyTC;
 using Debug = UnityEngine.Debug;
 using XRSessionCapture.Editor.SparkyTC;
 
@@ -402,6 +403,11 @@ namespace XRSessionCapture.Editor
                     if (GUILayout.Button("Open SparkyTC", GUILayout.Width(110)))
                         Application.OpenURL(SparkyTCSettings.Url);
                 }
+                using (new EditorGUI.DisabledScope(!SparkyTCSettings.IsConfigured))
+                {
+                    if (GUILayout.Button(new GUIContent("Publish replays…", "Publish replays of linked captures to SparkyTC as an automated test run for a build.")))
+                        PublishWindow.Open();
+                }
             }
             if (!string.IsNullOrEmpty(m_SparkyTCStatus))
                 EditorGUILayout.HelpBox(m_SparkyTCStatus, m_SparkyTCStatusType);
@@ -414,7 +420,7 @@ namespace XRSessionCapture.Editor
             Repaint();
             try
             {
-                var project = await SparkyTCClient.FromSettings().GetProjectAsync();
+                var project = await SparkyTCSettings.CreateClient().GetProjectAsync();
                 m_SparkyTCProject = project;
                 m_SparkyTCStatus = $"Connected to {project.title} ({project.projectShortCode}). " +
                     (project.CanWrite ? "This token can also publish results." : "This token reads only: enough to link captures; publishing needs Read and write.");

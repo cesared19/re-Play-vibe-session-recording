@@ -319,7 +319,17 @@ Si tu equipo gestiona las pruebas en SparkyTC, cada sesión se puede vincular co
 
 El vínculo se guarda en el archivo `sparkytc.json` dentro de la carpeta de la sesión, así que se conserva al moverla (por ejemplo a `SessionCaptures/regression/`) o al copiarla a otro PC.
 
-> **Si Connect dice que la API no está en esa URL (404):** en algunas instalaciones el backend de SparkyTC solo escucha dentro del servidor (`127.0.0.1:8080`). Mientras no se publique la API, abre un túnel SSH desde el PC y usa **API URL** = `http://localhost:8080`:
+### Publicar las reproducciones
+
+1. Reproduce las sesiones vinculadas: en el Editor (paso 14), en el visor (paso 15, y bájalas) o con las pruebas de regresión (paso 17).
+2. En *Window → XR Session Capture → SparkyTC*, pulsa **Publish replays…**.
+3. Elige la **build** que probaste. Si no aparece, pide a un admin que la registre en SparkyTC (pestaña *Builds*).
+4. Revisa qué reproducciones están marcadas (por defecto, la más reciente de cada sesión vinculada) y pulsa **Publish**.
+5. Al terminar, **Open the test run in SparkyTC** abre el run: aparece con la insignia **Automated**, un resultado por test case y, en cada uno, el *Replay report* con sus capturas y el `.zip` de la reproducción.
+
+Para publicar desde las pruebas automáticas, define `SPARKYTC_URL`, `SPARKYTC_TOKEN` (Read and write) y `SPARKYTC_BUILD` antes de abrir Unity; la tabla está en el README.
+
+> **Si Connect dice que la API no está en esa URL (404):** SparkyTC 2.5.0 o posterior responde la API en la misma dirección de la app. Con versiones anteriores el backend solo escucha dentro del servidor (`127.0.0.1:8080`): abre un túnel SSH desde el PC y usa **API URL** = `http://localhost:8080`:
 >
 > ```bash
 > ssh -N -L 8080:127.0.0.1:8080 usuario@servidor-de-sparkytc
@@ -343,3 +353,6 @@ El vínculo se guarda en el archivo `sparkytc.json` dentro de la carpeta de la s
 | El reporte dice "the capture was cut short" | La app se cerró antes de detener la grabación. Se reproduce hasta donde se grabó. |
 | **Connect** dice que SparkyTC no aceptó el token | El token está mal copiado o fue revocado. Pide uno nuevo a un admin. |
 | **Connect** dice que no puede llegar a SparkyTC | Revisa la URL y que el PC llegue al servidor (abre la URL en el navegador). |
+| **Publish** dice que la build no está registrada | Un admin la agrega en SparkyTC (pestaña *Builds*) con el mismo nombre. No se publicó nada. |
+| **Publish** dice que el token solo lee | Pide un token *Read and write*. |
+| Una reproducción aparece como "Can't be published" | Su sesión no está vinculada (usa **Link…**), o la reproducción no terminó y no tiene reporte. |

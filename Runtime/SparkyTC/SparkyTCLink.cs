@@ -1,9 +1,11 @@
+// Only in the Editor (the window and tests): the headset never talks to SparkyTC.
+#if UNITY_EDITOR
 using System;
 using System.Globalization;
 using System.IO;
 using UnityEngine;
 
-namespace XRSessionCapture.Editor.SparkyTC
+namespace XRSessionCapture.SparkyTC
 {
     /// <summary>
     /// The SparkyTC test case a capture automates, saved as sparkytc.json in the capture's folder. It travels with the
@@ -64,3 +66,4 @@ namespace XRSessionCapture.Editor.SparkyTC
         }
     }
 }
+#endif
