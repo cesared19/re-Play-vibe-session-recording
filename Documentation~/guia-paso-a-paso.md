@@ -153,7 +153,7 @@ El paquete lee el visor y los controles a través del Input System, igual que el
 2. Pega:
 
    ```
-   https://github.com/cesared19/re-Play-vibe-session-recording.git
+   https://github.com/cesared19/re-Vibe-session-recording.git
    ```
 
 3. Pulsa **Add**. En la lista aparece **XR Session Capture**. Si falta, instala también el **Input System** 1.7 o posterior.

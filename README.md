@@ -32,13 +32,13 @@ Cada sesión es una carpeta con:
 En *Window → Package Manager → + → Add package from git URL*:
 
 ```
-https://github.com/cesared19/re-Play-vibe-session-recording.git
+https://github.com/cesared19/re-Vibe-session-recording.git
 ```
 
 O en `Packages/manifest.json`:
 
 ```json
-"com.sparky.xr-session-capture": "https://github.com/cesared19/re-Play-vibe-session-recording.git"
+"com.sparky.xr-session-capture": "https://github.com/cesared19/re-Vibe-session-recording.git"
 ```
 
 ## Uso
