@@ -25,7 +25,7 @@ Esta guía cubre todo el proceso: preparar el PC y el visor, instalar el paquete
 15. [Reproducir en el visor](#15-reproducir-en-el-visor)
 16. [Leer el reporte](#16-leer-el-reporte)
 17. [Automatizar con pruebas de regresión (opcional)](#17-automatizar-con-pruebas-de-regresión-opcional)
-18. [Vincular sesiones con SparkyTC (opcional)](#18-vincular-sesiones-con-sparkytc-opcional)
+18. [Conectar con SparkyTC y publicar resultados (opcional)](#18-conectar-con-sparkytc-y-publicar-resultados-opcional)
 19. [Solución de problemas](#19-solución-de-problemas)
 
 ---
@@ -40,6 +40,7 @@ Esta guía cubre todo el proceso: preparar el PC y el visor, instalar el paquete
 | Cuenta de HTC | La del visor, para activar el modo desarrollador si lo pide. |
 | Unity | 2021.3 LTS o posterior (recomendado 2022.3 LTS), con el módulo **Android Build Support**. |
 | Git | Instalado en el PC: el Package Manager de Unity lo usa para descargar paquetes desde GitHub. |
+| SparkyTC (opcional) | 2.5.0 o posterior, para publicar los resultados como test runs (paso 18). |
 
 ## 2. Preparar el PC
 
@@ -305,31 +306,112 @@ Si una captura falla por algo que cambia solo (partículas, un reloj en pantalla
 
    En Windows, `Unity` es la ruta a `Unity.exe` (por ejemplo, `"C:\Program Files\Unity\Hub\Editor\<versión>\Editor\Unity.exe"`).
 
-## 18. Vincular sesiones con SparkyTC (opcional)
+## 18. Conectar con SparkyTC y publicar resultados (opcional)
 
-Si tu equipo gestiona las pruebas en SparkyTC, cada sesión se puede vincular con el test case que automatiza. Todo ocurre en el PC; el visor no necesita conexión.
+Si tu equipo gestiona las pruebas en [SparkyTC](https://github.com/cesared19/SparkyTC), cada sesión se vincula con el test case que automatiza, y sus reproducciones se publican como **test runs automáticos** con su resultado, capturas y reporte.
 
-1. Pide a un admin de SparkyTC un **token de API** del proyecto (en SparkyTC: el proyecto → *Settings* → *API tokens*). Con **Read** puedes vincular; para publicar resultados más adelante hace falta **Read and write**. El token se muestra una sola vez: cópialo.
-2. En Unity, abre *Window → XR Session Capture* y despliega **SparkyTC**:
-   - **SparkyTC URL**: la dirección donde abres SparkyTC en el navegador, por ejemplo `http://192.168.1.20:3000`.
-   - **API URL**: déjalo vacío salvo que la API esté en otra dirección (ver abajo).
-   - **Project API token**: pega el token.
-3. Pulsa **Connect**. Debe aparecer "Connected to <proyecto>". Si no, el mensaje dice qué falla: URL, token o conexión.
-4. En cada sesión de la lista, pulsa **Link…**, busca el test case por número o por palabras del título y elígelo. La sesión muestra `SparkyTC: PRJ-12 <título>`; **Open** lo abre en SparkyTC.
+Todo ocurre en el **PC**: el visor nunca se conecta a SparkyTC. Las sesiones grabadas en el visor se bajan al PC (paso 13) y desde ahí se publican.
 
-El vínculo se guarda en el archivo `sparkytc.json` dentro de la carpeta de la sesión, así que se conserva al moverla (por ejemplo a `SessionCaptures/regression/`) o al copiarla a otro PC.
+### 18.1 Qué hace falta
 
-### Publicar las reproducciones
+| Qué | Detalle |
+| --- | --- |
+| SparkyTC | **2.5.0 o posterior**. Desde esa versión la API de integración responde en la misma dirección de la app (puerto 3000). |
+| Red | El PC con Unity tiene que llegar al servidor de SparkyTC. Comprueba que abres SparkyTC en el navegador de ese PC. |
+| Un admin de SparkyTC | Para crear el token y registrar las builds (pasos 18.2 y 18.3). |
 
-1. Reproduce las sesiones vinculadas: en el Editor (paso 14), en el visor (paso 15, y bájalas) o con las pruebas de regresión (paso 17).
+### 18.2 Crear el token de API (lo hace un admin, en SparkyTC)
+
+1. Entra a SparkyTC con una cuenta de **admin** y abre el proyecto.
+2. Ve a la pestaña **Settings** y baja a la sección **API tokens**.
+3. Escribe un nombre que identifique de dónde vienen los resultados, por ejemplo `re-Play`. Ese nombre aparece en SparkyTC como autor: *re-Play (API token)*.
+4. Elige el permiso:
+   - **Read and write**: hace falta para **publicar** resultados. Es el que normalmente quieres.
+   - **Read**: solo sirve para vincular sesiones con test cases.
+5. Pulsa **Create token** y **copia el token** (empieza con `stc_`). Se muestra **una sola vez**. Si se pierde, se revoca (**Revoke**) y se crea otro.
+6. Pásalo al tester por un canal privado. Cada token sirve solo para ese proyecto.
+
+### 18.3 Registrar la build (lo hace un admin, en SparkyTC)
+
+Los resultados se publican para una build que ya exista en SparkyTC; re-Play no crea builds.
+
+1. En el proyecto, pestaña **Settings**, sección **Builds**.
+2. En **Register a new build** escribe el número de build de la app que vas a probar, por ejemplo `1.4.2`, y pulsa **Register**.
+
+Usa siempre el mismo formato de nombre: al publicar, re-Play busca la build por ese nombre (sin distinguir mayúsculas).
+
+### 18.4 Conectar Unity con SparkyTC
+
+1. En Unity, abre *Window → XR Session Capture* y despliega la sección **SparkyTC**.
+2. Llena los campos:
+   - **SparkyTC URL**: la dirección donde abres SparkyTC en el navegador, por ejemplo `http://192.168.1.20:3000`. Cópiala de la barra de direcciones, sin nada después del puerto.
+   - **API URL**: déjalo **vacío**. Solo se usa con SparkyTC anterior a 2.5.0 (ver la nota del final).
+   - **Project API token**: pega el token del paso 18.2.
+3. Pulsa **Connect**. Debe aparecer *Connected to <proyecto> (<código>)* y si el token puede publicar. Si no, el mensaje dice qué falla; la tabla del paso 19 explica cada caso.
+4. Opcional: **Open SparkyTC** abre la app en el navegador, para confirmar que la URL es la correcta.
+
+La URL y el token se guardan en las preferencias de Unity de **este PC** (EditorPrefs). No quedan en el proyecto, en el repositorio ni en el `.apk`. Para dejar de usar un token, bórralo del campo; para invalidarlo en todos lados, el admin lo revoca en SparkyTC.
+
+> SparkyTC todavía no usa HTTPS: el token viaja sin cifrar por la red local, igual que la sesión del navegador. Úsalo solo en la red de la oficina.
+
+### 18.5 Vincular cada sesión con su test case
+
+1. En la lista de sesiones de *Window → XR Session Capture*, cada una muestra **SparkyTC: not linked** y el botón **Link…**.
+2. Pulsa **Link…**: se abre un buscador con los test cases del proyecto. Busca por número (`12`) o por palabras del título y pulsa **Search**, o deja la búsqueda vacía para ver los primeros 50.
+3. Elige el test case. La sesión muestra ahora `SparkyTC: PRJ-12 <título>`, con:
+   - **Open**: abre el test case en SparkyTC.
+   - **Change…**: lo cambia por otro.
+   - **Unlink**: quita el vínculo.
+
+El vínculo se guarda en `sparkytc.json`, dentro de la carpeta de la sesión. Viaja con ella: se conserva al moverla a `SessionCaptures/regression/` o al copiarla a otro PC, sin volver a vincular.
+
+### 18.6 Publicar las reproducciones
+
+1. Reproduce las sesiones vinculadas: en el Editor (paso 14) o en el visor (paso 15, y luego **Pull captures from headset**).
 2. En *Window → XR Session Capture → SparkyTC*, pulsa **Publish replays…**.
-3. Elige la **build** que probaste. Si no aparece, pide a un admin que la registre en SparkyTC (pestaña *Builds*).
-4. Revisa qué reproducciones están marcadas (por defecto, la más reciente de cada sesión vinculada) y pulsa **Publish**.
-5. Al terminar, **Open the test run in SparkyTC** abre el run: aparece con la insignia **Automated**, un resultado por test case y, en cada uno, el *Replay report* con sus capturas y el `.zip` de la reproducción.
+3. En **Build**, elige la build que probaste. La lista viene de SparkyTC; si falta, vuelve al paso 18.3.
+4. En **Run title**, opcionalmente, escribe un título. Si lo dejas vacío, queda *re-Play <build> · <fecha>*.
+5. Revisa las reproducciones marcadas. Por defecto se marca la más reciente de cada sesión vinculada. Las de sesiones sin vincular, o que no terminaron, aparecen con *Can't be published* y el motivo.
+6. Pulsa **Publish**. La ventana muestra el avance y, al terminar, el número del test run.
+7. Pulsa **Open the test run in SparkyTC** para verlo. Cada reproducción queda así:
+   - El run aparece con la insignia **Automated** y *re-Play (API token)* como autor.
+   - Cada test case queda en **Pass** (la reproducción coincidió con la grabación) o **Fail**, con los hallazgos en las notas y el tiempo de la reproducción.
+   - En el resultado aparece el **Replay report**: capturas con su % de diferencia, enlaces a las imágenes de grabación, reproducción y diferencia, y la tabla de rendimiento.
+   - Como evidencia quedan esas imágenes y un `.zip` con la carpeta de la reproducción (con `report.html`).
 
-Para publicar desde las pruebas automáticas, define `SPARKYTC_URL`, `SPARKYTC_TOKEN` (Read and write) y `SPARKYTC_BUILD` antes de abrir Unity; la tabla está en el README.
+**Volver a publicar** las mismas reproducciones no crea nada nuevo: SparkyTC devuelve el mismo run, y si una publicación anterior quedó a medias, completa lo que falte. Para publicar una reproducción nueva de la misma sesión, haz la reproducción y vuelve a publicar: sale un run nuevo.
 
-> **Si Connect dice que la API no está en esa URL (404):** SparkyTC 2.5.0 o posterior responde la API en la misma dirección de la app. Con versiones anteriores el backend solo escucha dentro del servidor (`127.0.0.1:8080`): abre un túnel SSH desde el PC y usa **API URL** = `http://localhost:8080`:
+### 18.7 Publicar desde las pruebas automáticas
+
+La prueba de ejemplo del paso 17 publica sola al terminar si estas variables de entorno están definidas **antes de abrir Unity**:
+
+| Variable | Valor |
+| --- | --- |
+| `SPARKYTC_URL` | La SparkyTC URL, p. ej. `http://192.168.1.20:3000` |
+| `SPARKYTC_TOKEN` | Un token *Read and write* |
+| `SPARKYTC_BUILD` | La build registrada, p. ej. `1.4.2` |
+| `SPARKYTC_RUN_TITLE` | Opcional: título del run |
+| `SPARKYTC_API_URL` | Opcional: solo con SparkyTC anterior a 2.5.0 |
+
+En macOS o Linux:
+
+```bash
+SPARKYTC_URL=http://192.168.1.20:3000 SPARKYTC_TOKEN=stc_... SPARKYTC_BUILD=1.4.2 \
+  Unity -batchmode -projectPath . -runTests -testPlatform PlayMode -testResults results.xml
+```
+
+En Windows (PowerShell):
+
+```powershell
+$env:SPARKYTC_URL = "http://192.168.1.20:3000"
+$env:SPARKYTC_TOKEN = "stc_..."
+$env:SPARKYTC_BUILD = "1.4.2"
+& "C:\Program Files\Unity\Hub\Editor\<versión>\Editor\Unity.exe" -batchmode -projectPath . -runTests -testPlatform PlayMode -testResults results.xml
+```
+
+Si la publicación falla (build sin registrar, token de solo lectura, sin conexión), la ejecución de pruebas termina con error y el motivo. Sin esas variables, las pruebas corren igual y no publican nada.
+
+> **Con SparkyTC anterior a 2.5.0** el backend solo escucha dentro del servidor (`127.0.0.1:8080`), así que **Connect** dice que la API no está en esa URL (404). Actualiza SparkyTC o, mientras tanto, abre un túnel SSH desde el PC y pon **API URL** = `http://localhost:8080`:
 >
 > ```bash
 > ssh -N -L 8080:127.0.0.1:8080 usuario@servidor-de-sparkytc
@@ -351,8 +433,12 @@ Para publicar desde las pruebas automáticas, define `SPARKYTC_URL`, `SPARKYTC_T
 | La reproducción no mueve la cámara | La cámara debe usar *Tracked Pose Driver (Input System)* (o leer el visor con Input System). Lo que use la API antigua `UnityEngine.XR.InputDevices` no se reproduce. |
 | Todas las capturas fallan en el Editor con una sesión grabada en el visor | Calidad, sombras y antialiasing difieren entre el visor y el PC. Compara en el mismo dispositivo o sube *Pixel Threshold*. |
 | El reporte dice "the capture was cut short" | La app se cerró antes de detener la grabación. Se reproduce hasta donde se grabó. |
-| **Connect** dice que SparkyTC no aceptó el token | El token está mal copiado o fue revocado. Pide uno nuevo a un admin. |
-| **Connect** dice que no puede llegar a SparkyTC | Revisa la URL y que el PC llegue al servidor (abre la URL en el navegador). |
+| **Connect** está gris | Falta la **SparkyTC URL** o el **token** (paso 18.4). |
+| **Connect** dice que SparkyTC no aceptó el token | Está mal copiado (con espacios o incompleto) o fue revocado. Pide uno nuevo a un admin (paso 18.2). |
+| **Connect** dice que no puede llegar a SparkyTC | Revisa la URL (con `http://` y el puerto `:3000`) y que el PC llegue al servidor: ábrela en el navegador. Si el navegador sí entra, revisa el firewall o la VPN del PC. |
+| **Connect** dice que la API no está en esa URL (404) | La URL no es la de SparkyTC, o el servidor tiene una versión anterior a 2.5.0 (ver la nota al final del paso 18). |
+| **Connect** dice que el token solo lee | Sirve para vincular; para publicar, pide uno *Read and write*. |
+| **Link…** no encuentra el test case | Busca por número o por otra palabra del título; los test cases archivados no aparecen. |
 | **Publish** dice que la build no está registrada | Un admin la agrega en SparkyTC (pestaña *Builds*) con el mismo nombre. No se publicó nada. |
 | **Publish** dice que el token solo lee | Pide un token *Read and write*. |
 | Una reproducción aparece como "Can't be published" | Su sesión no está vinculada (usa **Link…**), o la reproducción no terminó y no tiene reporte. |
