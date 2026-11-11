@@ -25,7 +25,8 @@ Esta guía cubre todo el proceso: preparar el PC y el visor, instalar el paquete
 15. [Reproducir en el visor](#15-reproducir-en-el-visor)
 16. [Leer el reporte](#16-leer-el-reporte)
 17. [Automatizar con pruebas de regresión (opcional)](#17-automatizar-con-pruebas-de-regresión-opcional)
-18. [Solución de problemas](#18-solución-de-problemas)
+18. [Vincular sesiones con SparkyTC (opcional)](#18-vincular-sesiones-con-sparkytc-opcional)
+19. [Solución de problemas](#19-solución-de-problemas)
 
 ---
 
@@ -304,7 +305,27 @@ Si una captura falla por algo que cambia solo (partículas, un reloj en pantalla
 
    En Windows, `Unity` es la ruta a `Unity.exe` (por ejemplo, `"C:\Program Files\Unity\Hub\Editor\<versión>\Editor\Unity.exe"`).
 
-## 18. Solución de problemas
+## 18. Vincular sesiones con SparkyTC (opcional)
+
+Si tu equipo gestiona las pruebas en SparkyTC, cada sesión se puede vincular con el test case que automatiza. Todo ocurre en el PC; el visor no necesita conexión.
+
+1. Pide a un admin de SparkyTC un **token de API** del proyecto (en SparkyTC: el proyecto → *Settings* → *API tokens*). Con **Read** puedes vincular; para publicar resultados más adelante hace falta **Read and write**. El token se muestra una sola vez: cópialo.
+2. En Unity, abre *Window → XR Session Capture* y despliega **SparkyTC**:
+   - **SparkyTC URL**: la dirección donde abres SparkyTC en el navegador, por ejemplo `http://192.168.1.20:3000`.
+   - **API URL**: déjalo vacío salvo que la API esté en otra dirección (ver abajo).
+   - **Project API token**: pega el token.
+3. Pulsa **Connect**. Debe aparecer "Connected to <proyecto>". Si no, el mensaje dice qué falla: URL, token o conexión.
+4. En cada sesión de la lista, pulsa **Link…**, busca el test case por número o por palabras del título y elígelo. La sesión muestra `SparkyTC: PRJ-12 <título>`; **Open** lo abre en SparkyTC.
+
+El vínculo se guarda en el archivo `sparkytc.json` dentro de la carpeta de la sesión, así que se conserva al moverla (por ejemplo a `SessionCaptures/regression/`) o al copiarla a otro PC.
+
+> **Si Connect dice que la API no está en esa URL (404):** en algunas instalaciones el backend de SparkyTC solo escucha dentro del servidor (`127.0.0.1:8080`). Mientras no se publique la API, abre un túnel SSH desde el PC y usa **API URL** = `http://localhost:8080`:
+>
+> ```bash
+> ssh -N -L 8080:127.0.0.1:8080 usuario@servidor-de-sparkytc
+> ```
+
+## 19. Solución de problemas
 
 | Problema | Qué revisar |
 | --- | --- |
@@ -320,3 +341,5 @@ Si una captura falla por algo que cambia solo (partículas, un reloj en pantalla
 | La reproducción no mueve la cámara | La cámara debe usar *Tracked Pose Driver (Input System)* (o leer el visor con Input System). Lo que use la API antigua `UnityEngine.XR.InputDevices` no se reproduce. |
 | Todas las capturas fallan en el Editor con una sesión grabada en el visor | Calidad, sombras y antialiasing difieren entre el visor y el PC. Compara en el mismo dispositivo o sube *Pixel Threshold*. |
 | El reporte dice "the capture was cut short" | La app se cerró antes de detener la grabación. Se reproduce hasta donde se grabó. |
+| **Connect** dice que SparkyTC no aceptó el token | El token está mal copiado o fue revocado. Pide uno nuevo a un admin. |
+| **Connect** dice que no puede llegar a SparkyTC | Revisa la URL y que el PC llegue al servidor (abre la URL en el navegador). |

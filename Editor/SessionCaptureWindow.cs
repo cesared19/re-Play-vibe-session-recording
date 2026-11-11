@@ -7,6 +7,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
+using XRSessionCapture.Editor.SparkyTC;
 
 namespace XRSessionCapture.Editor
 {
@@ -29,6 +30,7 @@ namespace XRSessionCapture.Editor
             public string error;
             public List<(string directory, ReplayReport report)> replays = new List<(string, ReplayReport)>();
             public bool expanded;
+            public SparkyTCLink link;
         }
 
         readonly List<CaptureEntry> m_Captures = new List<CaptureEntry>();
@@ -36,6 +38,13 @@ namespace XRSessionCapture.Editor
         string m_PackageId;
         string m_AdbPath;
         string m_Status;
+
+        // SparkyTC: the project the token is for, checked with "Connect"
+        bool m_ShowSparkyTC;
+        string m_SparkyTCStatus;
+        MessageType m_SparkyTCStatusType = MessageType.None;
+        SparkyTCClient.Project m_SparkyTCProject;
+        bool m_Connecting;
 
         [MenuItem("Window/XR Session Capture")]
         public static void Open()
@@ -65,6 +74,7 @@ namespace XRSessionCapture.Editor
         {
             m_PackageId = EditorPrefs.GetString(PackageIdPref, PlayerSettings.applicationIdentifier);
             m_AdbPath = EditorPrefs.GetString(AdbPathPref, DefaultAdbPath());
+            m_ShowSparkyTC = SparkyTCSettings.IsConfigured;
             Refresh();
         }
 
@@ -76,12 +86,16 @@ namespace XRSessionCapture.Editor
             var root = SessionCaptureManager.RootDirectory;
             if (!Directory.Exists(root))
                 return;
-            foreach (var directory in Directory.GetDirectories(root).OrderByDescending(d => Path.GetFileName(d), StringComparer.Ordinal))
+            foreach (var directory in CaptureDirectories(root))
             {
                 var file = Path.Combine(directory, SessionFile.CaptureFileName);
-                if (!File.Exists(file))
-                    continue;
-                var entry = new CaptureEntry { directory = directory, id = Path.GetFileName(directory) };
+                var entry = new CaptureEntry
+                {
+                    directory = directory,
+                    // relative to SessionCaptures, e.g. "regression/20261110-153012_Main"
+                    id = directory.Substring(root.Length).TrimStart('/', '\\').Replace('\\', '/'),
+                    link = SparkyTCLink.Load(directory),
+                };
                 try
                 {
                     var capture = SessionCapture.Load(file);
@@ -104,6 +118,21 @@ namespace XRSessionCapture.Editor
                 }
                 m_Captures.Add(entry);
             }
+        }
+
+        /// <summary>Capture folders in SessionCaptures, and one level down in folders that group them (e.g. regression/), newest first.</summary>
+        static IEnumerable<string> CaptureDirectories(string root)
+        {
+            static bool IsCapture(string d) => File.Exists(Path.Combine(d, SessionFile.CaptureFileName));
+            var found = new List<string>();
+            foreach (var directory in Directory.GetDirectories(root))
+            {
+                if (IsCapture(directory))
+                    found.Add(directory);
+                else
+                    found.AddRange(Directory.GetDirectories(directory).Where(IsCapture));
+            }
+            return found.OrderByDescending(d => Path.GetFileName(d), StringComparer.Ordinal);
         }
 
         static ReplayReport SafeLoadReport(string directory)
@@ -154,6 +183,9 @@ namespace XRSessionCapture.Editor
             if (!string.IsNullOrEmpty(m_Status))
                 EditorGUILayout.HelpBox(m_Status, MessageType.None);
 
+            EditorGUILayout.Space(4);
+            DrawSparkyTCSettings();
+
             EditorGUILayout.Space(6);
             EditorGUILayout.LabelField($"Captures ({m_Captures.Count})", EditorStyles.boldLabel);
             if (m_Captures.Count == 0)
@@ -179,6 +211,7 @@ namespace XRSessionCapture.Editor
                 }
                 var info = entry.info;
                 EditorGUILayout.LabelField($"{info?.sceneName} · {info?.deviceModel} · {entry.duration:0.0} s · {entry.frames} frames · {entry.screenshots} screenshots" + (entry.truncated ? " · cut short" : ""), EditorStyles.miniLabel);
+                DrawSparkyTCLink(entry);
 
                 using (new EditorGUILayout.HorizontalScope())
                 {
@@ -333,6 +366,126 @@ namespace XRSessionCapture.Editor
                 m_Status = $"Could not run adb ({adb}): {e.Message}. Set the adb path above (Android SDK platform-tools).";
                 return false;
             }
+        }
+
+        // ---------- SparkyTC ----------
+
+        void DrawSparkyTCSettings()
+        {
+            m_ShowSparkyTC = EditorGUILayout.Foldout(m_ShowSparkyTC, "SparkyTC" + (m_SparkyTCProject != null ? $" · {m_SparkyTCProject.title} ({m_SparkyTCProject.projectShortCode})" : string.Empty), true, EditorStyles.foldoutHeader);
+            if (!m_ShowSparkyTC)
+                return;
+
+            EditorGUILayout.LabelField("Link captures to test cases, and publish replays as automated test runs. Kept on this PC only.", EditorStyles.wordWrappedMiniLabel);
+            EditorGUI.BeginChangeCheck();
+            var url = EditorGUILayout.TextField(new GUIContent("SparkyTC URL", "The address you open SparkyTC at, e.g. http://192.168.1.20:3000."), SparkyTCSettings.Url);
+            var apiUrl = EditorGUILayout.TextField(new GUIContent("API URL (optional)", "Only if the integration API answers somewhere else, e.g. http://localhost:8080 through an SSH tunnel to the server."), SparkyTCSettings.ApiUrl);
+            var token = EditorGUILayout.PasswordField(new GUIContent("Project API token", "stc_... An admin creates it in SparkyTC: the project's Settings → API tokens. Read is enough to link; publishing needs Read and write."), SparkyTCSettings.Token);
+            if (EditorGUI.EndChangeCheck())
+            {
+                SparkyTCSettings.Url = url;
+                SparkyTCSettings.ApiUrl = apiUrl;
+                SparkyTCSettings.Token = token;
+                m_SparkyTCProject = null;
+                m_SparkyTCStatus = null;
+            }
+
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                using (new EditorGUI.DisabledScope(m_Connecting || !SparkyTCSettings.IsConfigured))
+                {
+                    if (GUILayout.Button(m_Connecting ? "Connecting…" : "Connect", GUILayout.Width(110)))
+                        ConnectToSparkyTC();
+                }
+                using (new EditorGUI.DisabledScope(string.IsNullOrEmpty(SparkyTCSettings.Url)))
+                {
+                    if (GUILayout.Button("Open SparkyTC", GUILayout.Width(110)))
+                        Application.OpenURL(SparkyTCSettings.Url);
+                }
+            }
+            if (!string.IsNullOrEmpty(m_SparkyTCStatus))
+                EditorGUILayout.HelpBox(m_SparkyTCStatus, m_SparkyTCStatusType);
+        }
+
+        async void ConnectToSparkyTC()
+        {
+            m_Connecting = true;
+            m_SparkyTCStatus = null;
+            Repaint();
+            try
+            {
+                var project = await SparkyTCClient.FromSettings().GetProjectAsync();
+                m_SparkyTCProject = project;
+                m_SparkyTCStatus = $"Connected to {project.title} ({project.projectShortCode}). " +
+                    (project.CanWrite ? "This token can also publish results." : "This token reads only: enough to link captures; publishing needs Read and write.");
+                m_SparkyTCStatusType = MessageType.Info;
+            }
+            catch (SparkyTCException e)
+            {
+                m_SparkyTCProject = null;
+                m_SparkyTCStatus = e.Message;
+                m_SparkyTCStatusType = MessageType.Warning;
+            }
+            catch (Exception e)
+            {
+                m_SparkyTCProject = null;
+                m_SparkyTCStatus = "Couldn't talk to SparkyTC: " + e.Message;
+                m_SparkyTCStatusType = MessageType.Warning;
+            }
+            finally
+            {
+                m_Connecting = false;
+                Repaint();
+            }
+        }
+
+        void DrawSparkyTCLink(CaptureEntry entry)
+        {
+            var link = entry.link;
+            if (link == null && !SparkyTCSettings.IsConfigured)
+                return;
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                if (link != null)
+                {
+                    EditorGUILayout.LabelField(new GUIContent($"SparkyTC: {link.DisplayCode} {link.title}", link.sectionPath), EditorStyles.miniLabel);
+                    var web = SparkyTCSettings.WebUrl(link.webPath);
+                    using (new EditorGUI.DisabledScope(web == null))
+                    {
+                        if (GUILayout.Button("Open", EditorStyles.miniButton, GUILayout.Width(50)))
+                            Application.OpenURL(web);
+                    }
+                }
+                else
+                {
+                    EditorGUILayout.LabelField("SparkyTC: not linked", EditorStyles.miniLabel);
+                }
+
+                using (new EditorGUI.DisabledScope(!SparkyTCSettings.IsConfigured))
+                {
+                    var rect = GUILayoutUtility.GetRect(new GUIContent(link == null ? "Link…" : "Change…"), EditorStyles.miniButton, GUILayout.Width(70));
+                    if (GUI.Button(rect, link == null ? "Link…" : "Change…", EditorStyles.miniButton))
+                        LinkCapture(entry, rect);
+                }
+                if (link != null && GUILayout.Button("Unlink", EditorStyles.miniButton, GUILayout.Width(55))
+                    && EditorUtility.DisplayDialog("Unlink capture", $"Unlink {entry.id} from {link.DisplayCode}? Its replays won't be published to SparkyTC.", "Unlink", "Cancel"))
+                {
+                    SparkyTCLink.Delete(entry.directory);
+                    entry.link = null;
+                }
+            }
+        }
+
+        void LinkCapture(CaptureEntry entry, Rect buttonRect)
+        {
+            PopupWindow.Show(buttonRect, new TestCasePicker((project, testCase) =>
+            {
+                m_SparkyTCProject = project;
+                var link = SparkyTCLink.From(project.projectShortCode, testCase);
+                link.Save(entry.directory);
+                entry.link = link;
+                Repaint();
+            }));
         }
 
         static string DefaultAdbPath()
