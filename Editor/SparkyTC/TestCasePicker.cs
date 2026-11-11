@@ -1,6 +1,7 @@
 using System;
 using UnityEditor;
 using UnityEngine;
+using XRSessionCapture.SparkyTC;
 
 namespace XRSessionCapture.Editor.SparkyTC
 {
@@ -34,7 +35,7 @@ namespace XRSessionCapture.Editor.SparkyTC
             m_Error = null;
             try
             {
-                var client = SparkyTCClient.FromSettings();
+                var client = SparkyTCSettings.CreateClient();
                 // the project's code makes the links readable (PRJ-12)
                 if (m_Project == null)
                     m_Project = await client.GetProjectAsync();

@@ -1,4 +1,5 @@
 using UnityEditor;
+using XRSessionCapture.SparkyTC;
 
 namespace XRSessionCapture.Editor.SparkyTC
 {
@@ -32,6 +33,8 @@ namespace XRSessionCapture.Editor.SparkyTC
             get => EditorPrefs.GetString(TokenKey, string.Empty);
             set => EditorPrefs.SetString(TokenKey, (value ?? string.Empty).Trim());
         }
+
+        public static SparkyTCClient CreateClient() => new SparkyTCClient(EffectiveApiUrl, Token);
 
         public static bool IsConfigured => !string.IsNullOrEmpty(EffectiveApiUrl) && !string.IsNullOrEmpty(Token);
 

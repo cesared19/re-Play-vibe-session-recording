@@ -14,10 +14,17 @@ using UnityEditor.SceneManagement;
 /// Run it from Window > General > Test Runner (PlayMode), or from the command line:
 ///   Unity -batchmode -projectPath . -runTests -testPlatform PlayMode -testResults results.xml
 /// Captures are recorded on the headset, pulled with Window > XR Session Capture and moved into the regression folder.
+///
+/// To publish the replays to SparkyTC when the run ends (one automated test run for the build), set these environment
+/// variables before starting Unity: SPARKYTC_URL, SPARKYTC_TOKEN (Read and write) and SPARKYTC_BUILD, and optionally
+/// SPARKYTC_API_URL and SPARKYTC_RUN_TITLE. Captures must be linked to test cases (Window > XR Session Capture).
 /// </summary>
 public class ReplayRegressionTests
 {
     const float TimeoutSeconds = 600f;
+
+    // replays made in this run, published to SparkyTC at the end
+    static readonly List<string> s_Replays = new List<string>();
 
     static IEnumerable<string> Captures()
     {
@@ -64,9 +71,37 @@ public class ReplayRegressionTests
             yield return null;
 
         Assert.IsNotNull(report, "The replay did not finish in time.");
+        s_Replays.Add(report.replayDirectory);
         Assert.IsTrue(report.passed, "Replay failed:\n" + string.Join("\n", report.findings) + "\nReport: " + Path.Combine(report.replayDirectory, ReplayReport.HtmlFileName));
         Object.Destroy(manager.gameObject);
         yield return null;
+    }
+
+    [OneTimeTearDown]
+    public void PublishToSparkyTC()
+    {
+#if UNITY_EDITOR
+        if (s_Replays.Count == 0)
+            return;
+        try
+        {
+            // the publisher doesn't need the main thread, so waiting here is safe
+            var outcome = XRSessionCapture.SparkyTC.SparkyTCPublisher.PublishFromEnvironmentAsync(s_Replays).GetAwaiter().GetResult();
+            if (outcome == null)
+                return; // SPARKYTC_* not set: nothing to publish
+            Debug.Log($"[XRSessionCapture] Published to SparkyTC: test run {outcome.testRun.testRunNumber}, {outcome.recorded} new result(s). {outcome.testRunUrl}");
+            foreach (var skipped in outcome.skipped)
+                Debug.LogWarning($"[XRSessionCapture] Not published: {skipped.Key} ({skipped.skipReason})");
+        }
+        catch (XRSessionCapture.SparkyTC.SparkyTCException e)
+        {
+            Assert.Fail("Couldn't publish the replays to SparkyTC: " + e.Message);
+        }
+        finally
+        {
+            s_Replays.Clear();
+        }
+#endif
     }
 
 #if UNITY_EDITOR
