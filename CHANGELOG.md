@@ -10,6 +10,7 @@
 ### Changed
 
 - The install URLs use the repository's current name, `re-Vibe-session-recording`.
+- Works with **Unity 2020.3 LTS** (the package asked for 2021.3 before). The Editor window no longer uses `ToHashSet`, which Unity 2020.3's .NET Standard 2.0 doesn't have. The code compiles against Unity 2020.3 and 2021.3, and against Input System 1.4.3 and 1.7. The README and the guide say that on 2020.3 the VIVE OpenXR plugin must be 2.4.2 or earlier, since 2.5.0 requires Unity 2021.3, and give its URL.
 
 ## [0.2.0] - 2026-11-11
 

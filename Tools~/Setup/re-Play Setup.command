@@ -163,7 +163,7 @@ check_requirements() {
 	missing() { MISSING=$((MISSING + 1)); add "✗ $1"; add "     $2"; }
 
 	if [ -n "$GIT" ]; then add "✓ Git"; else missing 'Git: no está instalado' 'Unity lo usa para descargar re-Play. Instálalo (o las herramientas de Xcode) y vuelve a revisar.'; fi
-	if [ -n "$versions" ]; then add "✓ Unity: $versions"; else missing 'Unity: no se encontró en Unity Hub' 'Instala Unity 2021.3 o posterior desde Unity Hub.'; fi
+	if [ -n "$versions" ]; then add "✓ Unity: $versions"; else missing 'Unity: no se encontró en Unity Hub' 'Instala Unity 2020.3 o posterior desde Unity Hub.'; fi
 	if [ -n "$android_versions" ]; then add "✓ Módulo Android de Unity: $android_versions"; else missing 'Módulo Android de Unity: falta' 'En Unity Hub: Installs > (versión) > Add modules > Android Build Support, con OpenJDK y Android SDK & NDK Tools.'; fi
 	if [ -n "$ADB" ]; then add "✓ adb"; else missing 'adb: no se encontró' 'Viene con el módulo Android de Unity (Android SDK & NDK Tools).'; fi
 	if [ -n "$HEADSET" ]; then

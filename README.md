@@ -6,7 +6,7 @@ Incluye además un **overlay de métricas** dentro del visor (FPS, tiempos de CP
 
 **¿Primera vez?** La [guía paso a paso](Documentation~/guia-paso-a-paso.md) explica todo el proceso, desde preparar el PC y el visor hasta grabar, bajar y reproducir una sesión.
 
-> **Estado:** versión 0.1.0. El código compila contra Unity 2021.3 e Input System 1.7 (runtime, Editor y la rama de Android), pero **todavía no se ha probado en Unity ni en un Focus 3**. Consulta [Primera prueba](#primera-prueba) más abajo.
+> **Estado:** el código compila contra Unity 2020.3 y 2021.3 (runtime, Editor y la rama de Android) y contra Input System 1.4.3 y 1.7, pero **todavía no se ha probado en Unity ni en un Focus 3**. Consulta [Primera prueba](#primera-prueba) más abajo.
 
 ## Qué se graba
 
@@ -22,8 +22,10 @@ Cada sesión es una carpeta con:
 
 ## Requisitos
 
-- Unity 2021.3 o posterior, con el **Input System** (1.7 o posterior). En *Player Settings → Active Input Handling* debe estar **Input System Package** o **Both**.
+- **Unity 2020.3 LTS o posterior** (incluida la 2020.3.49f1), con el **Input System** (1.7 o posterior; el Package Manager lo instala solo). En *Player Settings → Active Input Handling* debe estar **Input System Package** o **Both**.
 - El plugin **VIVE OpenXR** para Android, con el perfil *VIVE Focus 3 Controller*. Funciona con cualquier perfil de OpenXR que use Input System.
+  - Con **Unity 2020.3**, usa VIVE OpenXR **2.4.2 o anterior**: desde la 2.5.0 el plugin exige Unity 2021.3. La URL con esa versión está en el paso 5 de la guía.
+  - Con Unity 2021.3 o posterior sirve la versión más reciente del plugin.
 - Para los tiempos de CPU y GPU, activa *Player Settings → Frame Timing Stats*. El tiempo del hilo principal solo aparece en builds de desarrollo.
 - Que la app lea la entrada con el Input System (TrackedPoseDriver, XR Interaction Toolkit o tus propias `InputAction`). Lo que use la API antigua `UnityEngine.XR.InputDevices` no se reproduce.
 
