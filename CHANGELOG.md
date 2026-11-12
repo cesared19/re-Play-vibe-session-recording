@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-12
+
 ### Added
 
 - Setup assistant for Windows and macOS (`Tools~/Setup`): a window that checks what the PC needs (Git, Unity, Unity's Android module, adb, the headset), adds re-Play to a Unity project at a chosen version, installs an `.apk` on the headset, opens the app and pulls its captures. It uses only what the system ships with (Windows PowerShell; bash, perl and osascript on macOS).
@@ -37,6 +39,7 @@
 - Sample PlayMode regression test.
 - Step-by-step guide in Spanish (`Documentation~/guia-paso-a-paso.md`): PC and headset setup, installation, recording, pulling and replaying a session.
 
-[Unreleased]: https://github.com/cesared19/re-Vibe-session-recording/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/cesared19/re-Vibe-session-recording/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/cesared19/re-Vibe-session-recording/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/cesared19/re-Vibe-session-recording/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/cesared19/re-Vibe-session-recording/releases/tag/v0.1.0
