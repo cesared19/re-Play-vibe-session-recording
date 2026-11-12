@@ -244,7 +244,7 @@ function Get-Requirements {
     else { $rows += New-Row 'Git' $false 'No está instalado' 'Unity lo usa para descargar re-Play. Instálalo y vuelve a revisar.' }
 
     if ($editors.Count -gt 0) { $rows += New-Row 'Unity' $true (($editors | ForEach-Object { $_.Version }) -join ', ') '' }
-    else { $rows += New-Row 'Unity' $false 'No se encontró en Unity Hub' 'Instala Unity 2021.3 o posterior desde Unity Hub.' }
+    else { $rows += New-Row 'Unity' $false 'No se encontró en Unity Hub' 'Instala Unity 2020.3 o posterior desde Unity Hub.' }
 
     if ($withAndroid.Count -gt 0) { $rows += New-Row 'Módulo Android de Unity' $true (($withAndroid | ForEach-Object { $_.Version }) -join ', ') '' }
     else { $rows += New-Row 'Módulo Android de Unity' $false 'Falta' 'En Unity Hub: Installs > (versión) > Add modules > Android Build Support, con OpenJDK y Android SDK & NDK Tools.' }

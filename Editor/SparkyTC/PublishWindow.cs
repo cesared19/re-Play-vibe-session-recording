@@ -57,10 +57,11 @@ namespace XRSessionCapture.Editor.SparkyTC
                 // the newest replay of each linked capture is chosen to start with
                 var newestPerCapture = items.Where(i => i.skipReason == null)
                     .GroupBy(i => i.captureDirectory)
-                    .Select(g => g.OrderBy(i => Path.GetFileName(i.replayDirectory), StringComparer.Ordinal).Last())
-                    .ToHashSet();
+                    .Select(g => g.OrderBy(i => Path.GetFileName(i.replayDirectory), StringComparer.Ordinal).Last());
+                // new HashSet(...) instead of ToHashSet(): Unity 2020.3 compiles against .NET Standard 2.0, which lacks it
+                var newestSet = new HashSet<PublishItem>(newestPerCapture);
                 foreach (var item in items.OrderByDescending(i => Path.GetFileName(i.replayDirectory), StringComparer.Ordinal))
-                    m_Rows.Add(new Row { item = item, selected = newestPerCapture.Contains(item) });
+                    m_Rows.Add(new Row { item = item, selected = newestSet.Contains(item) });
             }
             LoadProject();
         }

@@ -38,7 +38,7 @@ Esta guía cubre todo el proceso: preparar el PC y el visor, instalar el paquete
 | Cable | USB-C de datos (no solo de carga) entre el visor y el PC. |
 | PC | Windows 10/11 o macOS, con espacio para Unity (unos 15 GB con el módulo de Android). |
 | Cuenta de HTC | La del visor, para activar el modo desarrollador si lo pide. |
-| Unity | 2021.3 LTS o posterior (recomendado 2022.3 LTS), con el módulo **Android Build Support**. |
+| Unity | **2020.3 LTS** (la 2020.3.49f1 sirve) **o posterior**, con el módulo **Android Build Support**. Con 2020.3 hay que usar VIVE OpenXR 2.4.2 (paso 5). |
 | Git | Instalado en el PC: el Package Manager de Unity lo usa para descargar paquetes desde GitHub. |
 | SparkyTC (opcional) | 2.5.0 o posterior, para publicar los resultados como test runs (paso 18). |
 
@@ -56,7 +56,7 @@ Esta guía cubre todo el proceso: preparar el PC y el visor, instalar el paquete
 
 2. **Instala Unity Hub** desde <https://unity.com/download>.
 
-3. **Instala Unity con el módulo de Android.** En Unity Hub: *Installs → Install Editor*, elige una versión LTS (2022.3 recomendado) y marca:
+3. **Instala Unity con el módulo de Android.** En Unity Hub: *Installs → Install Editor*, elige la versión LTS que usa tu proyecto (2020.3 o posterior; si empiezas de cero, la más reciente) y marca:
    - **Android Build Support**
      - **OpenJDK**
      - **Android SDK & NDK Tools**
@@ -94,14 +94,17 @@ El plugin VIVE OpenXR es el que permite que la app corra en el Focus 3.
 
 1. En Unity: *Window → Package Manager*.
 2. Pulsa **+** (arriba a la izquierda) y elige **Add package from git URL…**
-3. Pega la URL del plugin que indique la [documentación de VIVE OpenXR](https://developer.vive.com/resources/openxr/). Hoy es:
+3. Pega la URL del plugin que indique la [documentación de VIVE OpenXR](https://developer.vive.com/resources/openxr/). **Elige según tu versión de Unity**, porque el plugin cambió su requisito:
 
-   ```
-   https://github.com/ViveSoftware/VIVE-OpenXR.git?path=com.htc.upm.vive.openxr
-   ```
+   | Tu Unity | Versión del plugin | URL |
+   | --- | --- | --- |
+   | **2021.3 o posterior** | La más reciente | `https://github.com/ViveSoftware/VIVE-OpenXR.git?path=com.htc.upm.vive.openxr` |
+   | **2020.3** (p. ej. 2020.3.49f1) | **2.4.2** (la 2.5.0 en adelante exige Unity 2021.3) | `https://github.com/ViveSoftware/VIVE-OpenXR.git?path=com.htc.upm.vive.openxr#versions/2.4.2` |
 
-   y pulsa **Add**. Esto instala también *OpenXR Plugin* y *XR Plugin Management*.
+   y pulsa **Add**. Esto instala también *OpenXR Plugin* y *XR Plugin Management* (en la 2.4.2, *OpenXR Plugin* 1.3.1).
 4. Si Unity pregunta si quieres activar el nuevo **Input System** y reiniciar, acepta (**Yes**).
+
+> **Unity 2020.3:** algunos nombres de menús y ajustes de los pasos 6 y 7 pueden diferir un poco de los de Unity 2021 o posterior (por ejemplo, *XR Rig* en vez de *XR Origin* en versiones antiguas del XR Interaction Toolkit). Usa en el Package Manager la versión de cada paquete que Unity marque como compatible con tu editor.
 
 ## 6. Configurar el proyecto para Android y el Focus 3
 

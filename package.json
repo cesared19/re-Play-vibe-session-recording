@@ -3,7 +3,7 @@
   "version": "0.2.0",
   "displayName": "XR Session Capture",
   "description": "Record XR sessions on the headset (head and controller poses, buttons, screenshots, performance metrics), replay them through virtual Input System devices in the Editor or on the headset, and compare screenshots and performance against the recording. Includes an in-headset metrics overlay. Built for the VIVE Focus 3 with the VIVE OpenXR plugin; works with any OpenXR headset that uses the Input System.",
-  "unity": "2021.3",
+  "unity": "2020.3",
   "keywords": [
     "xr",
     "openxr",
